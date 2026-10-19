@@ -3,7 +3,6 @@
 # Shared Zsh configuration
 # ============================================================
 
-
 # ------------------------------------------------------------
 # PATH
 # ------------------------------------------------------------
@@ -23,6 +22,16 @@ path=("$HOME/.local/bin" $path)
 # Some tools/installers create ~/.local/bin/env.
 # Load it only when it exists.
 [[ -f "$HOME/.local/bin/env" ]] && source "$HOME/.local/bin/env"
+
+
+# =============================================================================
+# Homebrew
+# =============================================================================
+# Load after user PATH setup so Homebrew takes precedence.
+# Must be before Oh My Zsh completion initialization.
+if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+fi
 
 
 # ------------------------------------------------------------
@@ -164,8 +173,8 @@ lt() {
     }'
 }
 
-# bat
-if (( $+commands[batcat] )); then
+# bat: Homebrew版を優先し、なければUbuntuのbatcatを使用
+if ! (( $+commands[bat] )) && (( $+commands[batcat] )); then
     alias bat='batcat'
 fi
 
@@ -289,7 +298,7 @@ ssh() {
                 unset SHIMAKAZE_PASS
             fi
         else
-            echo "sshpass is not installed. Please run: sudo apt install sshpass"
+            echo "sshpass is not installed. Please run: brew install sshpass"
             command ssh "$@"
         fi
     else
