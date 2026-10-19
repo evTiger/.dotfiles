@@ -63,6 +63,10 @@ fi
 
 if (( $+commands[zoxide] )); then
     eval "$(zoxide init zsh)"
+
+    alias zz='z ..'
+    alias zzz='z ../..'
+    alias cd='z'
 fi
 
 
