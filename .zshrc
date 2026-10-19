@@ -64,9 +64,6 @@ fi
 if (( $+commands[zoxide] )); then
     eval "$(zoxide init zsh)"
 
-    alias zz='z ..'
-    alias zzz='z ../..'
-    alias cd='z'
 fi
 
 
@@ -81,15 +78,91 @@ export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=117,bold"
 # Aliases
 # ------------------------------------------------------------
 
-# lsd
-if (( $+commands[lsd] )); then
+# zoxide
+if (( $+commands[zoxide] )); then
+    alias zz='z ..'
+    alias zzz='z ../..'
+    alias cd='z'
+fi
+
+# Directory listing: eza > lsd > system ls
+unalias ls l ll la lla lt 2>/dev/null
+
+if (( $+commands[eza] )); then
+    alias ls='eza --icons --group-directories-first'
+    alias l='eza -l --icons --group-directories-first'
+    alias ll='eza -l --git --icons --group-directories-first'
+    alias la='eza -a --icons --group-directories-first'
+    alias lla='eza -al --git --icons --group-directories-first'
+elif (( $+commands[lsd] )); then
     alias ls='lsd'
     alias l='lsd -l --group-dirs=first'
     alias ll='lsd -l --group-dirs=first'
     alias la='lsd -a --group-dirs=first'
     alias lla='lsd -al --group-dirs=first'
-    alias lt='lsd --tree --group-dirs=first'
 fi
+
+# lt supports -1, -2, ... as a tree depth argument.
+# A function (rather than an alias) is needed to parse arguments.
+lt() {
+    local depth_arg=""
+    local -a cmd
+
+    if [[ "$1" =~ ^-[0-9]+$ ]]; then
+        depth_arg="${1#-}"
+        shift
+    fi
+
+    if (( $+commands[eza] )); then
+        cmd=(eza --tree --all --icons=always --color=always --group-directories-first)
+        [[ -n "$depth_arg" ]] && cmd+=(--level="$depth_arg")
+    elif (( $+commands[lsd] )); then
+        cmd=(lsd --tree --all --icon always --color always --group-dirs=first)
+        [[ -n "$depth_arg" ]] && cmd+=(--depth "$depth_arg")
+    else
+        echo "eza または lsd が必要です" >&2
+        return 1
+    fi
+
+    "${cmd[@]}" "$@" | awk '
+    {
+        original = $0
+        plain = original
+
+        # ANSIカラーコードを判定用文字列から除去
+        gsub(/\033\[[0-9;]*[A-Za-z]/, "", plain)
+
+        if (match(plain, /[├└]── /)) {
+            # 字下げの長さを取得（固定幅を仮定しない）
+            indent = RSTART - 1
+
+            # .git 配下なら非表示
+            if (inside_git && indent > git_indent)
+                next
+
+            inside_git = 0
+
+            # ファイル・ディレクトリ名を取得
+            name = substr(plain, RSTART + RLENGTH)
+
+            if (name ~ /(^|[[:space:]])\.git\/?[[:space:]]*$/) {
+                inside_git = 1
+                git_indent = indent
+            }
+        } else {
+            # .git 自体を指定した場合にも対応
+            if (plain ~ /(^|[[:space:]])\.git\/?[[:space:]]*$/) {
+                inside_git = 1
+                git_indent = -1
+            } else {
+                inside_git = 0
+            }
+        }
+
+        # 元の色とアイコンを保持して表示
+        print original
+    }'
+}
 
 # bat
 if (( $+commands[batcat] )); then
@@ -227,10 +300,6 @@ ssh() {
 
 # ------------------------------------------------------------
 # ssht
-#
-# NOTE:
-# この関数は既存の挙動を維持するため、
-# 元の .zshrc のコードをそのまま使用。
 # ------------------------------------------------------------
 
 ssht() {
