@@ -52,3 +52,5 @@ brew "xsel"
 brew "yazi"
 # Shell extension to navigate your filesystem faster
 brew "zoxide"
+# NCurses Disk Usage
+brew "ncdu"
