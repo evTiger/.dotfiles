@@ -385,7 +385,7 @@ ssht() {
             export PATH=\"\$ORIGINAL_PATH\"
             export TZ=\"Asia/Tokyo\"
             if command -v tmux &>/dev/null; then
-                tmux new-session -A -s ${(q)session}
+                tmux -u new-session -A -s ${(q)session}
             else
                 echo \"⚠️ リモート環境に tmux が見つからないため、通常のシェルを起動します。\"
                 \${SHELL:-sh} -l
@@ -422,7 +422,7 @@ ssht() {
         fi
 
         # ターゲットセッションにアタッチ
-        tmux attach-session -t ${(q)target_session}
+        tmux -u attach-session -t ${(q)target_session}
     "
 }
 
