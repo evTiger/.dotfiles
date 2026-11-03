@@ -123,10 +123,10 @@ lt() {
     fi
 
     if (( $+commands[eza] )); then
-        cmd=(eza --tree --all --icons=always --color=always --group-directories-first)
+        cmd=(eza --tree --icons=always --color=always --group-directories-first)
         [[ -n "$depth_arg" ]] && cmd+=(--level="$depth_arg")
     elif (( $+commands[lsd] )); then
-        cmd=(lsd --tree --all --icon always --color always --group-dirs=first)
+        cmd=(lsd --tree --icon always --color always --group-dirs=first)
         [[ -n "$depth_arg" ]] && cmd+=(--depth "$depth_arg")
     else
         echo "eza または lsd が必要です" >&2
